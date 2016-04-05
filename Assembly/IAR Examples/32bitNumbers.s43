@@ -1,0 +1,42 @@
+#include "msp430.h"                     ; #define controlled include file
+
+        NAME    main                    ; module name
+
+        PUBLIC  main                    ; make the main label vissible
+                                        ; outside this module
+        ORG     0FFFEh
+        DC16    init                    ; set reset vector to 'init' label
+
+        RSEG    CSTACK                  ; pre-declaration of segment
+        RSEG    CODE                    ; place program in 'CODE' segment
+
+init:   MOV     #SFE(CSTACK), SP        ; set up stack
+
+        ;kullanacağımız adres bölgesini sıfırladık
+        
+        clr     r5
+m1      clr     2400h(r5)
+        incd    r5
+        cmp     #020h,  r5
+        jnz     m1
+
+        ;32 bitlik sayı ilk sayıyı tanımkadık
+        
+        mov     #0f010h, &2402h      ;anlamlı ksıım
+        mov     #08010h, &2404h      ;anlamsız kısım
+        
+        ;32 bitlik sayi ikinci sayıyı yanımladık
+        mov     #0ffffh, &2412h      ;anlamlı kısım
+        mov     #08020h, &2414h      ;anlamsız ksıım
+        
+        add     &2404h, &2414h       ;anlamsız kısımları topladık
+        addc    &2402h, &2412h       ;anlamlı kısımları elde ile birlikte toplatk
+        adc     &2410h               ;taşma yı yazdırdık
+        
+        nop
+
+main:   NOP                             ; main program
+        MOV.W   #WDTPW+WDTHOLD,&WDTCTL  ; Stop watchdog timer
+        JMP $                           ; jump to current location '$'
+                                        ; (endless loop)
+        END
